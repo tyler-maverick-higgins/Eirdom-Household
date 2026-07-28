@@ -25,3 +25,21 @@ dev = [
     "pytest-django",
     "ruff",
 ]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = [
+    "tests.py",
+    "test_*.py",
+    "*_tests.py",
+]
+
+[tool.ruff]
+target-version = "py314"
+extend-exclude = [
+    "*/migrations/*.py",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["EXE002"]
+"**/tests/*.py" = ["EXE002"]

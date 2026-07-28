@@ -65,6 +65,7 @@ RUN apt-get update \
 COPY --from=app-build /opt/venv /opt/venv
 COPY --from=app-build /usr/local/bin/uv /usr/local/bin/uv
 COPY --from=app-build /usr/local/bin/uvx /usr/local/bin/uvx
+COPY --chown=python:python pyproject.toml /app/pyproject.toml
 
 COPY --chown=python:python bin/ /app/bin/
 COPY --chown=python:python src/ /app/src/

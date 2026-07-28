@@ -1,0 +1,77 @@
+name: Feature Request
+description: Suggest an improvement or new capability for Eirdom Household
+title: "[Feature]: "
+labels:
+    - enhancement
+assignees:
+    - SampleAssignee
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thank you for suggesting an improvement to Eirdom Household.
+
+              Describe the household problem first, followed by the proposed solution.
+
+    - type: textarea
+      id: problem
+      attributes:
+          label: Problem or need
+          description: What household-management problem would this feature solve?
+          placeholder: Describe the need or limitation.
+      validations:
+          required: true
+
+    - type: textarea
+      id: solution
+      attributes:
+          label: Proposed solution
+          description: Explain how you think the feature should work.
+      validations:
+          required: true
+
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: Alternatives considered
+          description: Describe any alternative approaches or workarounds you considered.
+
+    - type: dropdown
+      id: component
+      attributes:
+          label: Related component
+          options:
+              - Accounts and identity
+              - Household management
+              - Rooms
+              - Assets
+              - Inventory
+              - Maintenance
+              - Vehicles
+              - Finance
+              - Notifications
+              - Integrations
+              - Web frontend
+              - Mobile application
+              - Infrastructure
+              - Documentation
+              - Other
+      validations:
+          required: true
+
+    - type: textarea
+      id: context
+      attributes:
+          label: Additional context
+          description: Add diagrams, mockups, examples, or related information.
+
+    - type: checkboxes
+      id: checks
+      attributes:
+          label: Submission checklist
+          options:
+              - label: I searched existing issues and discussions for similar requests.
+                required: true
+              - label: I described the problem independently from the proposed implementation.
+                required: true
