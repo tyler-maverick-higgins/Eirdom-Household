@@ -1,0 +1,13 @@
+services:
+  backend:
+    image: eirdom-household-backend:dev
+    container_name: eirdom-household-backend
+
+    working_dir: /app/src
+
+    stdin_open: true
+    tty: true
+
+    volumes:
+      - ./src:/app/src
+      - ./bin:/app/bin
