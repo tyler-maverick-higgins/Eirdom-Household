@@ -1,2 +1,74 @@
-name: Docs
-on: [push]
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "fix/**"
+      - "docs/**"
+    paths:
+      - "**/*.md"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**/*.md"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Check Markdown files
+        shell: python
+        run: |
+          from pathlib import Path
+          import sys
+
+          markdown_files = sorted(Path(".").rglob("*.md"))
+
+          if not markdown_files:
+              print("No Markdown files were found.")
+              sys.exit(1)
+
+          errors = []
+
+          for path in markdown_files:
+              try:
+                  content = path.read_text(encoding="utf-8")
+              except UnicodeDecodeError:
+                  errors.append(f"{path}: file is not valid UTF-8")
+                  continue
+
+              if "\x00" in content:
+                  errors.append(f"{path}: file contains a null byte")
+
+              if content and not content.endswith("\n"):
+                  errors.append(f"{path}: file must end with a newline")
+
+              for line_number, line in enumerate(content.splitlines(), start=1):
+                  if line != line.rstrip():
+                      errors.append(
+                          f"{path}:{line_number}: trailing whitespace"
+                      )
+
+          if errors:
+              print("\n".join(errors))
+              sys.exit(1)
+
+          print(f"Validated {len(markdown_files)} Markdown files.")
