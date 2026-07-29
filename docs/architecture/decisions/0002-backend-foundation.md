@@ -16,28 +16,28 @@ inventory, finances, rooms, and household membership.
 
 The backend must support:
 
--   Local development using Docker Desktop
--   Reproducible dependency installation
--   PostgreSQL as the long-term database
--   A custom authentication model
--   Automated testing
--   Consistent linting and formatting
--   Future REST API support for React and React Native
+- Local development using Docker Desktop
+- Reproducible dependency installation
+- PostgreSQL as the long-term database
+- A custom authentication model
+- Automated testing
+- Consistent linting and formatting
+- Future REST API support for React and React Native
 
 ## Decision
 
 ### Framework
 
--   Python 3.14
--   Django 6
--   Django REST Framework
+- Python 3.14
+- Django 6
+- Django REST Framework
 
 ### Dependency Management
 
 The backend uses **uv** with:
 
--   `pyproject.toml`
--   `uv.lock`
+- `pyproject.toml`
+- `uv.lock`
 
 ### Containerized Development
 
@@ -45,17 +45,17 @@ Development is Docker-first using Docker Compose.
 
 The backend image:
 
--   Uses a multi-stage Docker build
--   Installs dependencies with `uv sync --frozen`
--   Runs as a non-root user
--   Uses bind mounts during development
+- Uses a multi-stage Docker build
+- Installs dependencies with `uv sync --frozen`
+- Runs as a non-root user
+- Uses bind mounts during development
 
 ### Database
 
--   PostgreSQL 18
--   Docker Compose service
--   Named Docker volume
--   `pg_isready` health check
+- PostgreSQL 18
+- Docker Compose service
+- Named Docker volume
+- `pg_isready` health check
 
 SQLite was used only during initial scaffolding.
 
@@ -63,14 +63,14 @@ SQLite was used only during initial scaffolding.
 
 Configuration is supplied through environment variables:
 
--   DJANGO_SECRET_KEY
--   DJANGO_DEBUG
--   DJANGO_ALLOWED_HOSTS
--   POSTGRES_DB
--   POSTGRES_USER
--   POSTGRES_PASSWORD
--   POSTGRES_HOST
--   POSTGRES_PORT
+- DJANGO_SECRET_KEY
+- DJANGO_DEBUG
+- DJANGO_ALLOWED_HOSTS
+- POSTGRES_DB
+- POSTGRES_USER
+- POSTGRES_PASSWORD
+- POSTGRES_HOST
+- POSTGRES_PORT
 
 A `.env.example` is committed while `.env` is ignored.
 
@@ -78,7 +78,7 @@ A `.env.example` is committed while `.env` is ignored.
 
 A custom user model is used from project inception:
 
-``` python
+```python
 AUTH_USER_MODEL = "accounts.User"
 ```
 
@@ -88,12 +88,12 @@ The model extends `AbstractUser`.
 
 Testing uses:
 
--   pytest
--   pytest-django
+- pytest
+- pytest-django
 
 Validation commands:
 
-``` bash
+```bash
 pytest
 python manage.py check
 python manage.py makemigrations --check
@@ -105,51 +105,51 @@ ruff format --check .
 
 ### Positive
 
--   Reproducible development environment
--   PostgreSQL-first development
--   Custom user model before first migration
--   Automated testing foundation
--   Consistent linting and formatting
--   Docker-based workflow
+- Reproducible development environment
+- PostgreSQL-first development
+- Custom user model before first migration
+- Automated testing foundation
+- Consistent linting and formatting
+- Docker-based workflow
 
 ### Negative
 
--   Docker adds complexity
--   PostgreSQL uses more resources than SQLite
--   Developers must understand containers, images, bind mounts, and
-    volumes
+- Docker adds complexity
+- PostgreSQL uses more resources than SQLite
+- Developers must understand containers, images, bind mounts, and
+  volumes
 
 ## Alternatives Considered
 
--   SQLite as the primary database --- Rejected
--   Host-installed Python/PostgreSQL --- Rejected
--   Django default user model --- Rejected
--   pip + requirements.txt --- Rejected in favor of uv
+- SQLite as the primary database --- Rejected
+- Host-installed Python/PostgreSQL --- Rejected
+- Django default user model --- Rejected
+- pip + requirements.txt --- Rejected in favor of uv
 
 ## Validation
 
 Verified:
 
--   PostgreSQL starts and becomes healthy
--   Django connects successfully
--   Initial migrations apply
--   Django Admin login works
--   Custom User model functions
--   `pytest` passes
--   `ruff check` passes
--   `ruff format --check` passes
--   `python manage.py check` passes
--   `python manage.py makemigrations --check` passes
+- PostgreSQL starts and becomes healthy
+- Django connects successfully
+- Initial migrations apply
+- Django Admin login works
+- Custom User model functions
+- `pytest` passes
+- `ruff check` passes
+- `ruff format --check` passes
+- `python manage.py check` passes
+- `python manage.py makemigrations --check` passes
 
 ## Future Work
 
 Future ADRs should document:
 
--   Household domain model
--   Authentication and authorization
--   REST API conventions
--   Redis and background processing
--   GitHub Actions
--   Production deployment
--   Backup and recovery
--   Actual Budget integration
+- Household domain model
+- Authentication and authorization
+- REST API conventions
+- Redis and background processing
+- GitHub Actions
+- Production deployment
+- Backup and recovery
+- Actual Budget integration
