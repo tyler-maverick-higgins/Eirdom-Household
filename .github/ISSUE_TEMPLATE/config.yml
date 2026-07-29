@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+
+contact_links:
+    - name: Security vulnerability
+      url: https://github.com/tyler-maverick-higgins/Eirdom-Household/security/advisories/new
+      about: Report security vulnerabilities privately. Do not open a public issue.

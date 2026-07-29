@@ -1,0 +1,63 @@
+name: Question
+description: Ask a development or usage question about Eirdom Household
+title: "[Question]: "
+labels:
+    - question
+assignees: SampleAssignee
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Use this form for questions that are not bug reports, feature requests,
+              or security reports.
+
+              Security vulnerabilities must be reported according to SECURITY.md.
+
+    - type: dropdown
+      id: category
+      attributes:
+          label: Question category
+          options:
+              - Development setup
+              - Docker
+              - Django backend
+              - PostgreSQL
+              - Testing
+              - Architecture
+              - Documentation
+              - Deployment
+              - Usage
+              - Other
+      validations:
+          required: true
+
+    - type: textarea
+      id: question
+      attributes:
+          label: Question
+          description: Clearly explain what you are trying to understand or accomplish.
+      validations:
+          required: true
+
+    - type: textarea
+      id: attempted
+      attributes:
+          label: What have you tried?
+          description: Include commands, documentation, or troubleshooting steps already attempted.
+
+    - type: textarea
+      id: context
+      attributes:
+          label: Additional context
+          description: Include relevant versions, configuration excerpts, or screenshots.
+
+    - type: checkboxes
+      id: checks
+      attributes:
+          label: Submission checklist
+          options:
+              - label: I searched existing issues and documentation.
+                required: true
+              - label: This question does not disclose a security vulnerability.
+                required: true

@@ -1,0 +1,57 @@
+name: Documentation Issue
+description: Report missing, incorrect, or unclear documentation
+title: "[Docs]: "
+labels:
+    - documentation
+assignees: SampleAssignee
+
+body:
+    - type: dropdown
+      id: issue_type
+      attributes:
+          label: Documentation issue
+          options:
+              - Missing documentation
+              - Incorrect documentation
+              - Unclear documentation
+              - Broken link
+              - Formatting problem
+              - Example needed
+              - Other
+      validations:
+          required: true
+
+    - type: input
+      id: location
+      attributes:
+          label: Document or location
+          description: Provide the file path, section, or page where the issue appears.
+          placeholder: docs/development/setup.md
+      validations:
+          required: true
+
+    - type: textarea
+      id: current
+      attributes:
+          label: Current documentation
+          description: Describe what the documentation currently says or omits.
+      validations:
+          required: true
+
+    - type: textarea
+      id: improvement
+      attributes:
+          label: Suggested improvement
+          description: Explain how the documentation could be corrected or clarified.
+      validations:
+          required: true
+
+    - type: checkboxes
+      id: checks
+      attributes:
+          label: Submission checklist
+          options:
+              - label: I verified that this issue exists in the current repository.
+                required: true
+              - label: I searched for an existing documentation issue.
+                required: true
