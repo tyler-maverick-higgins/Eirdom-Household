@@ -20,7 +20,9 @@
             "settings": {
                 "python.defaultInterpreterPath": "/opt/venv/bin/python",
                 "python.testing.pytestEnabled": true,
-                "python.testing.pytestArgs": ["backend/src"]
+                "python.testing.cwd": "${workspaceFolder}/backend",
+                "python.testing.pytestArgs": ["src"],
+                "terminal.integrated.cwd": "${workspaceFolder}/backend"
             }
         }
     }
