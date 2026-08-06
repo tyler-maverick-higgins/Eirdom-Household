@@ -1,11 +1,12 @@
 from django.db import models
+from django.utils.text import slugify
 
 from config import settings
 
 
 class Household(models.Model):
     name = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True, max_length=150)
+    slug = models.SlugField(unique=True, max_length=150, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -16,6 +17,12 @@ class Household(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def save(self, *args, **kwargs):
+        # Only generate a slug if it hasn't been set manually
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
 
 class HouseholdMembership(models.Model):
@@ -52,4 +59,4 @@ class HouseholdMembership(models.Model):
     def __str__(self) -> str:
         status = "" if self.is_active else " — Inactive"
         role_label = self.Roles(self.role).label
-        return f"{self.user} — {self.household} ({role_label}){status}"
+        return f"{self.user} — ({role_label}){status}"
