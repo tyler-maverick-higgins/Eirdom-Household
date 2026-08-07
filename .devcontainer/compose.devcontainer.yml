@@ -1,0 +1,5 @@
+services:
+    backend:
+        volumes:
+            - .:/workspace
+        working_dir: /workspace/backend/src

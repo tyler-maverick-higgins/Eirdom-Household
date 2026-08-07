@@ -1,0 +1,62 @@
+from django.db import models
+from django.utils.text import slugify
+
+from config import settings
+
+
+class Household(models.Model):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, max_length=150, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "household"
+        verbose_name_plural = "households"
+        ordering = ["name", "created_at"]
+
+    def __str__(self) -> str:
+        return self.name
+
+    def save(self, *args, **kwargs):
+        # Only generate a slug if it hasn't been set manually
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+
+class HouseholdMembership(models.Model):
+    household = models.ForeignKey(Household, related_name="memberships", on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="household_memberships", on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+
+    class Roles(models.TextChoices):
+        OWNER = "owner", "Owner"
+        ADMINISTRATOR = "administrator", "Administrator"
+        MEMBER = "member", "Member"
+        GUEST = "guest", "Guest"
+
+    role = models.CharField(
+        max_length=20,
+        choices=Roles.choices,
+        default=Roles.MEMBER,
+    )
+
+    class Meta:
+        verbose_name = "household membership"
+        verbose_name_plural = "household memberships"
+        ordering = ["household", "created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["household", "user"], name="unique_household_membership"
+            )
+        ]
+
+    def __str__(self) -> str:
+        status = "" if self.is_active else " — Inactive"
+        role_label = self.Roles(self.role).label
+        return f"{self.user} — ({role_label}){status}"

@@ -1,6 +1,10 @@
 line-length = 100
 target-version = "py314"
 
+extend-exclude = [
+    "**/migrations/*.py",
+]
+
 [lint]
 select = ["E", "F", "I", "UP", "B", "DJ"]
 
