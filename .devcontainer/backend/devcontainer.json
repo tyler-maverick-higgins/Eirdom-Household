@@ -1,7 +1,7 @@
 {
     "name": "Eirdom Household Backend",
 
-    "dockerComposeFile": ["../compose.yml", "compose.devcontainer.yml"],
+    "dockerComposeFile": ["../../compose.yml", "compose.devcontainer.yml"],
 
     "service": "backend",
     "workspaceFolder": "/workspace",
