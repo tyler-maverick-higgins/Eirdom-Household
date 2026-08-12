@@ -1,0 +1,8 @@
+export { default as DashboardPage } from "./DashboardPage"
+export { default as HouseholdPage } from "./HouseholdPage"
+export { default as TasksPage } from "./TasksPage"
+export { default as MealsPage } from "./MealsPage"
+export { default as InventoryPage } from "./InventoryPage"
+export { default as MaintenancePage } from "./MaintenancePage"
+export { default as  FinancesPage } from "./FinancesPage"
+export { default as SettingsPage } from "./SettingsPage"

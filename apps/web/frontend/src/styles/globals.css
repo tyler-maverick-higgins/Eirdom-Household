@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+@theme {
+  /* Primary dark surfaces */
+  --color-eirdom-moscow-midnight: #204652;
+  --color-eirdom-charcoal-deep: #191817;
+
+  /* Cool supporting tones */
+  --color-eirdom-niebla-azul: #B6C3C4;
+
+  /* Warm supporting tones */
+  --color-eirdom-walnut-light: #746052;
+  --color-eirdom-natural-linen: #DFD3C3;
+  --color-eirdom-stone: #C7BDAE;
+  --color-eirdom-surface: #F7F4EF;
+  --color-eirdom-muted: var(--color-eirdom-stone);
+  --color-eirdom-border: var(--color-eirdom-niebla-azul);
+
+  /* Accent tones */
+  --color-eirdom-brass: #B59A63;
+  --color-eirdom-brass-light: #CFB77E;
+}
