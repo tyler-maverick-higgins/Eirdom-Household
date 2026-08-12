@@ -59,4 +59,4 @@ class HouseholdMembership(models.Model):
     def __str__(self) -> str:
         status = "" if self.is_active else " — Inactive"
         role_label = self.Roles(self.role).label
-        return f"{self.user} — ({role_label}){status}"
+        return f"{self.user} — {self.household} ({role_label}){status}"
