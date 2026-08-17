@@ -11,11 +11,14 @@ import {
 
 import { useEffect, useState } from "react";
 
+import { createHouseholdInvitation } from "../features/households/api";
+
 export default function HouseholdPage() {
     const [inviteOpen, setInviteOpen] = useState(false);
     const [inviteEmail, setInviteEmail] = useState("");
     const [inviteRole, setInviteRole] = useState("member");
     const [inviteError, setInviteError] = useState("");
+    const [inviteSubmitting, setInviteSubmitting] = useState(false);
 
     const closeInviteModal = () => {
         setInviteOpen(false);
@@ -44,7 +47,6 @@ export default function HouseholdPage() {
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, [inviteOpen]);
-
 
     const handleInviteSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();

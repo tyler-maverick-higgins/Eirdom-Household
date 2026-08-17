@@ -1,6 +1,18 @@
 from rest_framework import serializers
 
-from .models import HouseholdInvitation, HouseholdMembership
+from .models import Household, HouseholdInvitation, HouseholdMembership
+
+
+class HouseholdSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Household
+        fields = [
+            "id",
+            "name",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields
 
 
 class HouseholdInvitationSerializer(serializers.ModelSerializer):
