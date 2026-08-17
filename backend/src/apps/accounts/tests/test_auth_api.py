@@ -132,3 +132,11 @@ def test_logout_ends_authenticated_session(api_client, user):
     )
 
     assert current_user_response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_csrf_endpoint_returns_token(api_client):
+    response = api_client.get(reverse("accounts:csrf"))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["csrfToken"]
