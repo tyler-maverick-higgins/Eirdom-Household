@@ -60,3 +60,48 @@ class HouseholdMembership(models.Model):
         status = "" if self.is_active else " — Inactive"
         role_label = self.Roles(self.role).label
         return f"{self.user} — {self.household} ({role_label}){status}"
+
+
+class HouseholdInvitation(models.Model):
+    household = models.ForeignKey(Household, related_name="invitations", on_delete=models.CASCADE)
+    email = models.EmailField()
+    role = models.CharField(
+        max_length=20,
+        choices=HouseholdMembership.Roles.choices,
+        default=HouseholdMembership.Roles.MEMBER,
+    )
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="household_invitations_sent",
+        on_delete=models.CASCADE,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        ACCEPTED = "accepted", "Accepted"
+        DECLINED = "declined", "Declined"
+        CANCELED = "canceled", "Canceled"
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+
+    class Meta:
+        verbose_name = "household invitation"
+        verbose_name_plural = "household invitations"
+        ordering = ["household", "created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["household", "email"],
+                condition=models.Q(status="pending"),
+                name="unique_pending_household_invitation",
+            )
+        ]
+
+    def __str__(self) -> str:
+        role_label = HouseholdMembership.Roles(self.role).label
+        return f"{self.email} - {self.household} ({role_label}) - {self.status}"
