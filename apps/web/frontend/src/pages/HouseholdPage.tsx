@@ -11,14 +11,23 @@ import {
 
 import { useEffect, useState } from "react";
 
-import { createHouseholdInvitation } from "../features/households/api";
+import {
+    createHouseholdInvitation,
+    getHouseholds,
+    type Household,
+} from "../features/households/api";
 
 export default function HouseholdPage() {
     const [inviteOpen, setInviteOpen] = useState(false);
     const [inviteEmail, setInviteEmail] = useState("");
-    const [inviteRole, setInviteRole] = useState("member");
+    const [inviteRole, setInviteRole] = useState<"member" | "administrator">(
+        "member",
+    );
     const [inviteError, setInviteError] = useState("");
     const [inviteSubmitting, setInviteSubmitting] = useState(false);
+    const [household, setHousehold] = useState<Household | null>(null);
+    const [householdLoading, setHouseholdLoading] = useState(true);
+    const [householdError, setHouseholdError] = useState("");
 
     const closeInviteModal = () => {
         setInviteOpen(false);
@@ -48,7 +57,33 @@ export default function HouseholdPage() {
         };
     }, [inviteOpen]);
 
-    const handleInviteSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    useEffect(() => {
+        const loadHousehold = async () => {
+            try {
+                setHouseholdLoading(true);
+                setHouseholdError("");
+
+                const households = await getHouseholds();
+
+                if (households.length === 0) {
+                    setHousehold(null);
+                    return;
+                }
+
+                setHousehold(households[0]);
+            } catch {
+                setHouseholdError("Unable to load household information.");
+            } finally {
+                setHouseholdLoading(false);
+            }
+        };
+
+        void loadHousehold();
+    }, []);
+
+    const handleInviteSubmit = async (
+        event: React.FormEvent<HTMLFormElement>,
+    ) => {
         event.preventDefault();
 
         const trimmedEmail = inviteEmail.trim();
@@ -65,20 +100,47 @@ export default function HouseholdPage() {
             return;
         }
 
-        setInviteError("");
-        closeInviteModal();
+        if (!household) {
+            setInviteError("Household information is not available.");
+            return;
+        }
+
+        try {
+            setInviteSubmitting(true);
+            setInviteError("");
+
+            await createHouseholdInvitation(household.id, {
+                email: trimmedEmail,
+                role: inviteRole,
+            });
+
+            closeInviteModal();
+        } catch {
+            setInviteError("Unable to send the invitation. Please try again.");
+        } finally {
+            setInviteSubmitting(false);
+        }
     };
 
     return (
         <div className="min-h-screen bg-eirdom-surface">
             <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                 <header>
+                    {householdError && (
+                        <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4">
+                            <p className="text-sm text-red-700">
+                                {householdError}
+                            </p>
+                        </div>
+                    )}
                     <p className="text-sm font-medium text-eirdom-muted">
                         Household
                     </p>
 
                     <h1 className="mt-1 text-3xl font-semibold text-eirdom-moscow-midnight">
-                        Eirdom Household
+                        {householdLoading
+                            ? "Loading household..."
+                            : (household?.name ?? "Household")}
                     </h1>
 
                     <p className="mt-2 text-sm text-eirdom-muted">
@@ -97,7 +159,7 @@ export default function HouseholdPage() {
                             <p>Primary Household</p>
 
                             <h2 className="mt-1 text-xl font-semibold text-eirdom-moscow-midnight">
-                                Eirdom Household
+                                {household?.name ?? "Household"}
                             </h2>
 
                             <p className="mt-2 text-sm text-eirdom-muted">
@@ -359,7 +421,10 @@ export default function HouseholdPage() {
                                     id="invite-role"
                                     value={inviteRole}
                                     onChange={(event) =>
-                                        setInviteRole(event.target.value)
+                                        setInviteRole(
+                                            event.target.value as
+                                                "member" | "administrator",
+                                        )
                                     }
                                     className="mt-2 w-full rounded-lg border border-eirdom-border/50 bg-white px-3 py-2 text-sm text-eirdom-moscow-midnight outline-none transition focus:border-eirdom-moscow-midnight"
                                 >
@@ -386,9 +451,12 @@ export default function HouseholdPage() {
 
                                 <button
                                     type="submit"
+                                    disabled={inviteSubmitting}
                                     className="rounded-lg bg-eirdom-moscow-midnight px-4 py-2 text-sm font-medium text-eirdom-natural-linen transition-colors hover:bg-eirdom-moscow-midnight/90"
                                 >
-                                    Send invitation
+                                    {inviteSubmitting
+                                        ? "Sending..."
+                                        : "Send invitation"}
                                 </button>
                             </div>
                         </form>

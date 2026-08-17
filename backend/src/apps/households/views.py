@@ -10,7 +10,7 @@ class HouseholdListView(generics.ListAPIView):
     serializer_class = HouseholdSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self): # pyright: ignore[reportIncompatibleMethodOverride]
+    def get_queryset(self):  # pyright: ignore[reportIncompatibleMethodOverride]
         return Household.objects.filter(
             memberships__user=self.request.user,
             memberships__is_active=True,
