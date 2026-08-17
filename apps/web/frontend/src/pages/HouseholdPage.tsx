@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
-
+import axios from "axios";
 import {
     createHouseholdInvitation,
     getHouseholds,
@@ -115,7 +115,22 @@ export default function HouseholdPage() {
             });
 
             closeInviteModal();
-        } catch {
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const emailError = error.response?.data?.email?.[0];
+                const roleError = error.response?.data?.role?.[0];
+                const detailError = error.response?.data?.detail;
+
+                setInviteError(
+                    emailError ??
+                        roleError ??
+                        detailError ??
+                        "Unable to send the invitation. Please try again.",
+                );
+
+                return;
+            }
+
             setInviteError("Unable to send the invitation. Please try again.");
         } finally {
             setInviteSubmitting(false);
@@ -321,7 +336,7 @@ export default function HouseholdPage() {
                                 </p>
 
                                 <p className="mt-1 text-sm font-medium text-eirdom-moscow-midnight">
-                                    Eirdom Household
+                                    {household?.name ?? "Household"}
                                 </p>
                             </div>
 
@@ -436,8 +451,8 @@ export default function HouseholdPage() {
                             </div>
 
                             <p className="text-sm text-eirdom-muted">
-                                The person will receive an invitation to join
-                                Eirdom Household.
+                                The person will receive an invitation to join{" "}
+                                {household?.name ?? "this household"}.
                             </p>
 
                             <div className="flex justify-end gap-3 pt-2">

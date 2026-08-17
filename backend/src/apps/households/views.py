@@ -11,10 +11,14 @@ class HouseholdListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):  # pyright: ignore[reportIncompatibleMethodOverride]
-        return Household.objects.filter(
-            memberships__user=self.request.user,
-            memberships__is_active=True,
-        ).distinct()
+        return (
+            Household.objects.filter(
+                memberships__user=self.request.user,
+                memberships__is_active=True,
+            )
+            .distinct()
+            .order_by("id")
+        )
 
 
 class HouseholdInvitationCreateView(generics.CreateAPIView):
