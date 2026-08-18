@@ -1,20 +1,14 @@
 {
-    "name": "Eirdom Household Frontend",
+    "name": "Steward Frontend",
 
-    "build": {
-        "dockerfile": "../../apps/web/frontend/Dockerfile",
-        "context": "../.."
-    },
+    "dockerComposeFile": "../../compose.yml",
 
+    "service": "frontend",
     "workspaceFolder": "/workspace",
 
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+    "shutdownAction": "stopCompose",
 
     "remoteUser": "node",
-
-    "mounts": [
-        "source=eirdom-household-frontend-node-modules,target=/workspace/apps/web/frontend/node_modules,type=volume"
-    ],
 
     "customizations": {
         "vscode": {
@@ -32,5 +26,12 @@
         }
     },
 
-    "forwardPorts": [5173]
+    "forwardPorts": [5173],
+
+    "portsAttributes": {
+        "5173": {
+            "label": "Steward Frontend",
+            "onAutoForward": "notify"
+        }
+    }
 }

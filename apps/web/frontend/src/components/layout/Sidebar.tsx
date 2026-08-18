@@ -40,36 +40,68 @@ export default function Sidebar() {
         >
             <nav className="flex h-full flex-col">
                 <div
-                    className={`flex items-center p-6 ${
-                        expanded ? "justify-between" : "justify-center"
+                    className={`flex h-24 items-center ${
+                        expanded
+                            ? "justify-between px-5"
+                            : "justify-center px-3"
                     }`}
                 >
                     {expanded && (
-                        <div>
-                            <h1 className="text-xl font-semibold">Steward</h1>
-                            <p className="text-sm text-eirdom-stone">
-                                Higgins Household
-                            </p>
+                        <div className="flex min-w-0 items-center gap-3">
+                            <img
+                                src="/steward-icon.png"
+                                alt=""
+                                className="h-11 w-11 shrink-0 object-contain"
+                            />
+
+                            <div className="min-w-0">
+                                <h1 className="truncate text-xl font-semibold leading-tight text-eirdom-natural-linen">
+                                    Steward
+                                </h1>
+
+                                <p className="mt-0.5 truncate text-sm leading-tight text-eirdom-stone">
+                                    Higgins Household
+                                </p>
+                            </div>
                         </div>
                     )}
 
-                    <button
-                        type="button"
-                        onClick={() => setExpanded((current) => !current)}
-                        className="rounded-md p-2 text-eirdom-niebla-azul transition-colors hover:bg-eirdom-niebla-azul/50 hover:text-eirdom-natural-linen"
-                        aria-label={
-                            expanded ? "Collapse sidebar" : "Expand sidebar"
-                        }
-                    >
-                        {expanded ? (
+                    {!expanded && (
+                        <img
+                            src="/steward-icon.png"
+                            alt="Steward"
+                            className="h-10 w-10 object-contain"
+                        />
+                    )}
+
+                    {expanded && (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setExpanded((current) => !current)
+                            }
+                            className="ml-3 shrink-0 rounded-md p-2 text-eirdom-niebla-azul transition-colors hover:bg-eirdom-niebla-azul/20 hover:text-eirdom-natural-linen"
+                            aria-label="Collapse sidebar"
+                        >
                             <ChevronFirst size={20} />
-                        ) : (
-                            <ChevronLast size={20} />
-                        )}
-                    </button>
+                        </button>
+                    )}
+
+                    {!expanded && (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setExpanded((current) => !current)
+                            }
+                            className="absolute top-6 left-1/2 translate-x-3 rounded-md p-1 text-eirdom-niebla-azul transition-colors hover:text-eirdom-natural-linen"
+                            aria-label="Expand sidebar"
+                        >
+                            <ChevronLast size={18} />
+                        </button>
+                    )}
                 </div>
 
-                <ul className="mt-4 flex-1 space-y-1 px-3">
+                <ul className="mt-2 flex-1 space-y-1 px-3">
                     {navigation.map((item) => {
                         const Icon = item.icon;
 
@@ -80,7 +112,7 @@ export default function Sidebar() {
                                     end={item.path === "/"}
                                     title={!expanded ? item.name : undefined}
                                     className={({ isActive }) =>
-                                        `flex w-full items-center rounded-md px-3 py-2 text-sm transition-colors ${
+                                        `flex w-full items-center rounded-md py-2 text-sm transition-colors ${
                                             expanded
                                                 ? "px-3"
                                                 : "justify-center px-2"
@@ -91,7 +123,10 @@ export default function Sidebar() {
                                         }`
                                     }
                                 >
-                                    <Icon size={20} className="shrink-0" />
+                                    <Icon
+                                        size={20}
+                                        className="shrink-0"
+                                    />
 
                                     {expanded && (
                                         <span className="ml-3">
@@ -137,9 +172,13 @@ export default function Sidebar() {
 
                     <button
                         type="button"
-                        onClick={() => setAccountOpen((current) => !current)}
+                        onClick={() =>
+                            setAccountOpen((current) => !current)
+                        }
                         className={`flex w-full items-center rounded-md transition-colors hover:bg-eirdom-niebla-azul/20 ${
-                            expanded ? "gap-3 px-2 py-2" : "justify-center p-2"
+                            expanded
+                                ? "gap-3 px-2 py-2"
+                                : "justify-center p-2"
                         }`}
                     >
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-eirdom-niebla-azul/20 font-semibold text-eirdom-natural-linen">
@@ -152,6 +191,7 @@ export default function Sidebar() {
                                     <p className="truncate text-sm font-semibold text-eirdom-natural-linen">
                                         Tyler Higgins
                                     </p>
+
                                     <p className="truncate text-xs text-eirdom-stone">
                                         Administrator
                                     </p>

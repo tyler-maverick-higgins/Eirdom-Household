@@ -1,17 +1,20 @@
-import Sidebar from "../components/layout/Sidebar"
-import { Route, Routes } from "react-router-dom"
+import { Route, Routes } from "react-router-dom";
+
+import Sidebar from "../components/layout/Sidebar";
+import { ProtectedRoute } from "../features/auth/ProtectedRoute";
 import {
     DashboardPage,
-    HouseholdPage,
-    TasksPage,
-    MealsPage,
-    InventoryPage,
-    MaintenancePage,
     FinancesPage,
+    HouseholdPage,
+    InventoryPage,
+    LoginPage,
+    MaintenancePage,
+    MealsPage,
     SettingsPage,
-} from "../pages"
+    TasksPage,
+} from "../pages";
 
-export default function App() {
+function ProtectedLayout() {
     return (
         <div className="flex min-h-screen items-stretch">
             <Sidebar />
@@ -29,5 +32,17 @@ export default function App() {
                 </Routes>
             </main>
         </div>
+    );
+}
+
+export default function App() {
+    return (
+        <Routes>
+            <Route path="/login" element={<LoginPage />} />
+
+            <Route element={<ProtectedRoute />}>
+                <Route path="/*" element={<ProtectedLayout />} />
+            </Route>
+        </Routes>
     );
 }
