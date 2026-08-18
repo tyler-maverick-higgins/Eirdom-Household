@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../features/auth/useAuth";
 import {
     Boxes,
     ChevronFirst,
@@ -31,6 +32,36 @@ const navigation = [
 export default function Sidebar() {
     const [expanded, setExpanded] = useState(true);
     const [accountOpen, setAccountOpen] = useState(false);
+
+    const navigate = useNavigate();
+    const { user, logout } = useAuth();
+
+    const [signingOut, setSigningOut] = useState(false);
+
+    const displayName =
+        [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
+        user?.username ||
+        "User";
+
+    const initials =
+        [user?.first_name, user?.last_name]
+            .filter(Boolean)
+            .map((name) => name?.[0]?.toUpperCase())
+            .join("") ||
+        user?.username?.slice(0, 2).toUpperCase() ||
+        "U";
+
+    const handleLogout = async () => {
+        try {
+            setSigningOut(true);
+            await logout();
+            navigate("/login", { replace: true });
+        } catch (error) {
+            console.error("Unable to sign out:", error);
+        } finally {
+            setSigningOut(false);
+        }
+    };
 
     return (
         <aside
@@ -77,9 +108,7 @@ export default function Sidebar() {
                     {expanded && (
                         <button
                             type="button"
-                            onClick={() =>
-                                setExpanded((current) => !current)
-                            }
+                            onClick={() => setExpanded((current) => !current)}
                             className="ml-3 shrink-0 rounded-md p-2 text-eirdom-niebla-azul transition-colors hover:bg-eirdom-niebla-azul/20 hover:text-eirdom-natural-linen"
                             aria-label="Collapse sidebar"
                         >
@@ -90,9 +119,7 @@ export default function Sidebar() {
                     {!expanded && (
                         <button
                             type="button"
-                            onClick={() =>
-                                setExpanded((current) => !current)
-                            }
+                            onClick={() => setExpanded((current) => !current)}
                             className="absolute top-6 left-1/2 translate-x-3 rounded-md p-1 text-eirdom-niebla-azul transition-colors hover:text-eirdom-natural-linen"
                             aria-label="Expand sidebar"
                         >
@@ -123,10 +150,7 @@ export default function Sidebar() {
                                         }`
                                     }
                                 >
-                                    <Icon
-                                        size={20}
-                                        className="shrink-0"
-                                    />
+                                    <Icon size={20} className="shrink-0" />
 
                                     {expanded && (
                                         <span className="ml-3">
@@ -162,34 +186,34 @@ export default function Sidebar() {
 
                             <button
                                 type="button"
-                                className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-eirdom-stone transition-colors hover:bg-eirdom-niebla-azul/20 hover:text-eirdom-natural-linen"
+                                onClick={handleLogout}
+                                disabled={signingOut}
+                                className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-eirdom-stone transition-colors hover:bg-eirdom-niebla-azul/20 hover:text-eirdom-natural-linen disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 <LogOut size={18} />
-                                <span>Sign out</span>
+                                <span>
+                                    {signingOut ? "Signing out..." : "Sign out"}
+                                </span>
                             </button>
                         </div>
                     )}
 
                     <button
                         type="button"
-                        onClick={() =>
-                            setAccountOpen((current) => !current)
-                        }
+                        onClick={() => setAccountOpen((current) => !current)}
                         className={`flex w-full items-center rounded-md transition-colors hover:bg-eirdom-niebla-azul/20 ${
-                            expanded
-                                ? "gap-3 px-2 py-2"
-                                : "justify-center p-2"
+                            expanded ? "gap-3 px-2 py-2" : "justify-center p-2"
                         }`}
                     >
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-eirdom-niebla-azul/20 font-semibold text-eirdom-natural-linen">
-                            TH
+                            {initials}
                         </div>
 
                         {expanded && (
                             <>
                                 <div className="min-w-0 flex-1 text-left">
                                     <p className="truncate text-sm font-semibold text-eirdom-natural-linen">
-                                        Tyler Higgins
+                                        {displayName}
                                     </p>
 
                                     <p className="truncate text-xs text-eirdom-stone">
