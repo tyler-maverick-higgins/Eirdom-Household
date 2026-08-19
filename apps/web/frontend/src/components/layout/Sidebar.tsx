@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../features/auth/useAuth";
+import { useHousehold } from "../../features/households/useHousehold";
 import {
     Boxes,
     ChevronFirst,
@@ -37,6 +38,8 @@ export default function Sidebar() {
     const { user, logout } = useAuth();
 
     const [signingOut, setSigningOut] = useState(false);
+
+    const { activeHousehold, loading: householdLoading } = useHousehold();
 
     const displayName =
         [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
@@ -91,7 +94,10 @@ export default function Sidebar() {
                                 </h1>
 
                                 <p className="mt-0.5 truncate text-sm leading-tight text-eirdom-stone">
-                                    Higgins Household
+                                    {householdLoading
+                                        ? "Loading household..."
+                                        : (activeHousehold?.name ??
+                                          "No household")}
                                 </p>
                             </div>
                         </div>

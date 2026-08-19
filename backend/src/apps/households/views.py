@@ -3,7 +3,11 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Household, HouseholdMembership
-from .serializers import HouseholdInvitationSerializer, HouseholdSerializer
+from .serializers import (
+    HouseholdDetailSerializer,
+    HouseholdInvitationSerializer,
+    HouseholdSerializer,
+)
 
 
 class HouseholdListView(generics.ListAPIView):
@@ -19,6 +23,17 @@ class HouseholdListView(generics.ListAPIView):
             .distinct()
             .order_by("id")
         )
+
+
+class HouseholdDetailView(generics.RetrieveAPIView):
+    serializer_class = HouseholdDetailSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):  # pyright: ignore[reportIncompatibleMethodOverride]
+        return Household.objects.filter(
+            memberships__user=self.request.user,
+            memberships__is_active=True,
+        ).distinct()
 
 
 class HouseholdInvitationCreateView(generics.CreateAPIView):

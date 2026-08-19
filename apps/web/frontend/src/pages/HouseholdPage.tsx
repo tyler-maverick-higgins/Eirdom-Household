@@ -11,11 +11,8 @@ import {
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import {
-    createHouseholdInvitation,
-    getHouseholds,
-    type Household,
-} from "../features/households/api";
+import { createHouseholdInvitation } from "../features/households/api";
+import { useHousehold } from "../features/households/useHousehold";
 
 export default function HouseholdPage() {
     const [inviteOpen, setInviteOpen] = useState(false);
@@ -25,9 +22,12 @@ export default function HouseholdPage() {
     );
     const [inviteError, setInviteError] = useState("");
     const [inviteSubmitting, setInviteSubmitting] = useState(false);
-    const [household, setHousehold] = useState<Household | null>(null);
-    const [householdLoading, setHouseholdLoading] = useState(true);
-    const [householdError, setHouseholdError] = useState("");
+
+    const {
+        activeHousehold: household,
+        loading: householdLoading,
+        error: householdError,
+    } = useHousehold();
 
     const closeInviteModal = () => {
         setInviteOpen(false);
@@ -56,30 +56,6 @@ export default function HouseholdPage() {
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, [inviteOpen]);
-
-    useEffect(() => {
-        const loadHousehold = async () => {
-            try {
-                setHouseholdLoading(true);
-                setHouseholdError("");
-
-                const households = await getHouseholds();
-
-                if (households.length === 0) {
-                    setHousehold(null);
-                    return;
-                }
-
-                setHousehold(households[0]);
-            } catch {
-                setHouseholdError("Unable to load household information.");
-            } finally {
-                setHouseholdLoading(false);
-            }
-        };
-
-        void loadHousehold();
-    }, []);
 
     const handleInviteSubmit = async (
         event: React.FormEvent<HTMLFormElement>,

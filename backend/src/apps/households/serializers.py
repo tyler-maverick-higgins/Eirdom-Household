@@ -1,6 +1,9 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from .models import Household, HouseholdInvitation, HouseholdMembership
+
+User = get_user_model()
 
 
 class HouseholdSerializer(serializers.ModelSerializer):
@@ -13,6 +16,72 @@ class HouseholdSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = fields
+
+
+class HouseholdMemberUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+        ]
+        read_only_fields = fields
+
+
+class HouseholdMemberSerializer(serializers.ModelSerializer):
+    user = HouseholdMemberUserSerializer(read_only=True)
+
+    class Meta:
+        model = HouseholdMembership
+        fields = [
+            "id",
+            "user",
+            "role",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+
+class HouseholdDetailSerializer(serializers.ModelSerializer):
+    members = serializers.SerializerMethodField()
+    pending_invitations = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Household
+        fields = [
+            "id",
+            "name",
+            "created_at",
+            "updated_at",
+            "members",
+            "pending_invitations",
+        ]
+        read_only_fields = fields
+
+    def get_members(self, household):
+        memberships = household.memberships.filter(
+            is_active=True,
+        ).select_related("user")
+
+        return HouseholdMemberSerializer(
+            memberships,
+            many=True,
+        ).data
+
+    def get_pending_invitations(self, household):
+        invitations = household.invitations.filter(
+            status=HouseholdInvitation.Status.PENDING,
+        )
+
+        return HouseholdInvitationSerializer(
+            invitations,
+            many=True,
+        ).data
 
 
 class HouseholdInvitationSerializer(serializers.ModelSerializer):
