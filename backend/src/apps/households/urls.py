@@ -1,6 +1,11 @@
 from django.urls import path
 
-from .views import HouseholdDetailView, HouseholdInvitationCreateView, HouseholdListView
+from .views import (
+    HouseholdDetailView,
+    HouseholdInvitationCreateView,
+    HouseholdInvitationValidationView,
+    HouseholdListView,
+)
 
 app_name = "households"
 
@@ -19,5 +24,10 @@ urlpatterns = [
         "<int:pk>/",
         HouseholdDetailView.as_view(),
         name="household-detail",
+    ),
+    path(
+        "invitations/<str:token>/",
+        HouseholdInvitationValidationView.as_view(),
+        name="invitation-validate",
     ),
 ]

@@ -2,10 +2,8 @@ import {
     Home,
     Mail,
     MailPlus,
-    RotateCw,
     Shield,
     UserPlus,
-    UserRound,
     X,
 } from "lucide-react";
 
@@ -13,6 +11,49 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { createHouseholdInvitation } from "../features/households/api";
 import { useHousehold } from "../features/households/useHousehold";
+
+function formatRole(role: string) {
+    return role
+        .split("_")
+        .map(
+            (part) =>
+                part.charAt(0).toUpperCase() + part.slice(1),
+        )
+        .join(" ");
+}
+
+function getDisplayName(
+    firstName: string,
+    lastName: string,
+    username: string,
+) {
+    const fullName = [firstName, lastName]
+        .filter(Boolean)
+        .join(" ");
+
+    return fullName || username;
+}
+
+function getInitials(
+    firstName: string,
+    lastName: string,
+    username: string,
+) {
+    const initials = [firstName, lastName]
+        .filter(Boolean)
+        .map((name) => name[0]?.toUpperCase())
+        .join("");
+
+    return initials || username.slice(0, 2).toUpperCase();
+}
+
+function formatInvitationDate(value: string) {
+    return new Intl.DateTimeFormat("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+    }).format(new Date(value));
+}
 
 export default function HouseholdPage() {
     const [inviteOpen, setInviteOpen] = useState(false);
@@ -27,7 +68,14 @@ export default function HouseholdPage() {
         activeHousehold: household,
         loading: householdLoading,
         error: householdError,
+        refreshActiveHousehold,
     } = useHousehold();
+
+    const members = household?.members ?? [];
+    const pendingInvitations = household?.pending_invitations ?? [];
+
+    const memberCount = members.length;
+    const invitationCount = pendingInvitations.length;
 
     const closeInviteModal = () => {
         setInviteOpen(false);
@@ -89,6 +137,8 @@ export default function HouseholdPage() {
                 email: trimmedEmail,
                 role: inviteRole,
             });
+
+            await refreshActiveHousehold();
 
             closeInviteModal();
         } catch (error) {
@@ -154,7 +204,12 @@ export default function HouseholdPage() {
                             </h2>
 
                             <p className="mt-2 text-sm text-eirdom-muted">
-                                2 active members, 1 pending invitation
+                                {memberCount} active{" "}
+                                {memberCount === 1 ? "member" : "members"},{" "}
+                                {invitationCount} pending{" "}
+                                {invitationCount === 1
+                                    ? "invitation"
+                                    : "invitations"}
                             </p>
                         </div>
                     </div>
@@ -184,51 +239,59 @@ export default function HouseholdPage() {
                         </div>
 
                         <div className="mt-6 space-y-3">
-                            <div className="flex items-center justify-between rounded-lg border border-eirdom-border/30 bg-eirdom-niebla-azul/10 p-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-eirdom-niebla-azul/20 font-semibold text-eirdom-moscow-midnight">
-                                        TH
-                                    </div>
+                            {members.length > 0 ? (
+                                members.map((member) => {
+                                    const displayName = getDisplayName(
+                                        member.user.first_name,
+                                        member.user.last_name,
+                                        member.user.username,
+                                    );
 
-                                    <div>
-                                        <p className="text-sm font-semibold text-eirdom-moscow-midnight">
-                                            Tyler Higgins
-                                        </p>
+                                    const initials = getInitials(
+                                        member.user.first_name,
+                                        member.user.last_name,
+                                        member.user.username,
+                                    );
 
-                                        <div className="mt-1 flex items-center gap-2 text-xs text-eirdom-muted">
-                                            <Shield size={14} />
-                                            <span>Administrator</span>
+                                    return (
+                                        <div
+                                            key={member.id}
+                                            className="flex items-center justify-between rounded-lg border border-eirdom-border/30 bg-eirdom-niebla-azul/10 p-4"
+                                        >
+                                            <div className="flex min-w-0 items-center gap-4">
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-eirdom-niebla-azul/20 font-semibold text-eirdom-moscow-midnight">
+                                                    {initials}
+                                                </div>
+
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-semibold text-eirdom-moscow-midnight">
+                                                        {displayName}
+                                                    </p>
+
+                                                    <div className="mt-1 flex items-center gap-2 text-xs text-eirdom-muted">
+                                                        <Shield size={14} />
+                                                        <span>
+                                                            {formatRole(
+                                                                member.role,
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <span className="rounded-full bg-eirdom-niebla-azul/20 px-3 py-1 text-xs font-medium text-eirdom-moscow-midnight">
+                                                Active
+                                            </span>
                                         </div>
-                                    </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="rounded-lg border border-eirdom-border/30 bg-eirdom-niebla-azul/10 p-4">
+                                    <p className="text-sm text-eirdom-muted">
+                                        No active household members found.
+                                    </p>
                                 </div>
-
-                                <span className="rounded-full bg-eirdom-niebla-azul/20 px-3 py-1 text-xs font-medium text-eirdom-moscow-midnight">
-                                    Active
-                                </span>
-                            </div>
-
-                            <div className="flex items-center justify-between rounded-lg border border-eirdom-border/30 bg-eirdom-niebla-azul/10 p-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-eirdom-niebla-azul/20 font-semibold text-eirdom-moscow-midnight">
-                                        IH
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm font-semibold text-eirdom-moscow-midnight">
-                                            Irina Higgins
-                                        </p>
-
-                                        <div className="mt-1 flex items-center gap-2 text-xs text-eirdom-muted">
-                                            <UserRound size={14} />
-                                            <span>Member</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <span className="rounded-full bg-eirdom-niebla-azul/20 px-3 py-1 text-xs font-medium text-eirdom-moscow-midnight">
-                                    Active
-                                </span>
-                            </div>
+                            )}
                         </div>
 
                         <div className="mt-8 border-t border-eirdom-border/30 pt-6">
@@ -244,52 +307,52 @@ export default function HouseholdPage() {
                                 </div>
 
                                 <span className="text-sm text-eirdom-muted">
-                                    1 pending
+                                    {invitationCount} pending
                                 </span>
                             </div>
 
-                            <div className="mt-4">
-                                <div className="flex items-center justify-between gap-4 rounded-lg border border-eirdom-border/30 bg-eirdom-niebla-azul/10 p-4">
-                                    <div className="flex min-w-0 items-center gap-4">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-eirdom-niebla-azul/20 text-eirdom-moscow-midnight">
-                                            <MailPlus size={18} />
-                                        </div>
-
-                                        <div className="min-w-0">
-                                            <p className="truncate text-sm font-semibold text-eirdom-moscow-midnight">
-                                                invited@example.com
-                                            </p>
-
-                                            <p className="mt-1 text-xs text-eirdom-muted">
-                                                Invited August 16 · Member
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex shrink-0 items-center gap-2">
-                                        <span className="rounded-full bg-eirdom-niebla-azul/20 px-3 py-1 text-xs font-medium text-eirdom-moscow-midnight">
-                                            Pending
-                                        </span>
-
-                                        <button
-                                            type="button"
-                                            className="rounded-md p-2 text-eirdom-muted transition-colors hover:bg-eirdom-niebla-azul/20 hover:text-eirdom-moscow-midnight"
-                                            aria-label="Resend invitation"
-                                            title="Resend invitation"
+                            <div className="mt-4 space-y-3">
+                                {pendingInvitations.length > 0 ? (
+                                    pendingInvitations.map((invitation) => (
+                                        <div
+                                            key={invitation.id}
+                                            className="flex items-center justify-between gap-4 rounded-lg border border-eirdom-border/30 bg-eirdom-niebla-azul/10 p-4"
                                         >
-                                            <RotateCw size={16} />
-                                        </button>
+                                            <div className="flex min-w-0 items-center gap-4">
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-eirdom-niebla-azul/20 text-eirdom-moscow-midnight">
+                                                    <MailPlus size={18} />
+                                                </div>
 
-                                        <button
-                                            type="button"
-                                            className="rounded-md p-2 text-eirdom-muted transition-colors hover:bg-eirdom-niebla-azul/20 hover:text-eirdom-moscow-midnight"
-                                            aria-label="Cancel invitation"
-                                            title="Cancel invitation"
-                                        >
-                                            <X size={16} />
-                                        </button>
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-semibold text-eirdom-moscow-midnight">
+                                                        {invitation.email}
+                                                    </p>
+
+                                                    <p className="mt-1 text-xs text-eirdom-muted">
+                                                        Invited{" "}
+                                                        {formatInvitationDate(
+                                                            invitation.created_at,
+                                                        )}{" "}
+                                                        ·{" "}
+                                                        {formatRole(
+                                                            invitation.role,
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <span className="shrink-0 rounded-full bg-eirdom-niebla-azul/20 px-3 py-1 text-xs font-medium text-eirdom-moscow-midnight">
+                                                Pending
+                                            </span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="rounded-lg border border-eirdom-border/30 bg-eirdom-niebla-azul/10 p-4">
+                                        <p className="text-sm text-eirdom-muted">
+                                            No pending invitations.
+                                        </p>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </section>
@@ -322,7 +385,8 @@ export default function HouseholdPage() {
                                 </p>
 
                                 <p className="mt-1 text-sm font-medium text-eirdom-moscow-midnight">
-                                    2 active members
+                                    {memberCount} active{" "}
+                                    {memberCount === 1 ? "member" : "members"}
                                 </p>
                             </div>
 
@@ -443,7 +507,7 @@ export default function HouseholdPage() {
                                 <button
                                     type="submit"
                                     disabled={inviteSubmitting}
-                                    className="rounded-lg bg-eirdom-moscow-midnight px-4 py-2 text-sm font-medium text-eirdom-natural-linen transition-colors hover:bg-eirdom-moscow-midnight/90"
+                                    className="rounded-lg bg-eirdom-moscow-midnight px-4 py-2 text-sm font-medium text-eirdom-natural-linen transition-colors hover:bg-eirdom-moscow-midnight/90 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {inviteSubmitting
                                         ? "Sending..."

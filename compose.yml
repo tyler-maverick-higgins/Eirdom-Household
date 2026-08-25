@@ -18,6 +18,8 @@ services:
         depends_on:
             database:
                 condition: service_healthy
+            redis:
+                condition: service_healthy
 
     frontend:
         build:
@@ -54,7 +56,44 @@ services:
             interval: 5s
             timeout: 5s
             retries: 10
+    redis:
+        image: redis:8-alpine
+        container_name: eirdom-household-redis
+        command:
+            - redis-server
+            - --appendonly
+            - "yes"
+            - --appendfsync
+            - everysec
+        volumes:
+            - redis_data:/data
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+    celery-worker:
+        build:
+            context: ./backend
+            target: app
+        image: eirdom-household-backend:dev
+        container_name: eirdom-household-celery-worker
+        working_dir: /app/src
+        command: celery -A config worker --loglevel=INFO
+        env_file:
+            - ./backend/.env
+        volumes:
+            - ./backend/src:/app/src
+            - ./backend/bin:/app/bin
+            - ./backend/pyproject.toml:/app/pyproject.toml:ro
+        depends_on:
+            database:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        stop_grace_period: 30s
 
 volumes:
     postgres_data:
     frontend_node_modules:
+    redis_data:

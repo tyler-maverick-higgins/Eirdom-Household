@@ -5,7 +5,6 @@ import { useHousehold } from "../../features/households/useHousehold";
 import {
     Boxes,
     ChevronFirst,
-    ChevronLast,
     House,
     LayoutDashboard,
     ListChecks,
@@ -30,6 +29,13 @@ const navigation = [
     { name: "Settings", path: "/settings", icon: Settings },
 ];
 
+function formatRole(role: string) {
+    return role
+        .split("_")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+}
+
 export default function Sidebar() {
     const [expanded, setExpanded] = useState(true);
     const [accountOpen, setAccountOpen] = useState(false);
@@ -40,6 +46,14 @@ export default function Sidebar() {
     const [signingOut, setSigningOut] = useState(false);
 
     const { activeHousehold, loading: householdLoading } = useHousehold();
+
+    const currentMembership = activeHousehold?.members.find(
+        (member) => member.user.id === user?.id,
+    );
+
+    const currentRole = currentMembership
+        ? formatRole(currentMembership.role)
+        : "Member";
 
     const displayName =
         [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
@@ -104,13 +118,20 @@ export default function Sidebar() {
                     )}
 
                     {!expanded && (
-                        <img
-                            src="/steward-icon.png"
-                            alt="Steward"
-                            className="h-10 w-10 object-contain"
-                        />
+                        <button
+                            type="button"
+                            onClick={() => setExpanded(true)}
+                            className="rounded-md p-1 transition-opacity hover:opacity-80"
+                            aria-label="Expand sidebar"
+                            title="Expand sidebar"
+                        >
+                            <img
+                                src="/steward-icon.png"
+                                alt="Steward"
+                                className="h-10 w-10 object-contain"
+                            />
+                        </button>
                     )}
-
                     {expanded && (
                         <button
                             type="button"
@@ -119,17 +140,6 @@ export default function Sidebar() {
                             aria-label="Collapse sidebar"
                         >
                             <ChevronFirst size={20} />
-                        </button>
-                    )}
-
-                    {!expanded && (
-                        <button
-                            type="button"
-                            onClick={() => setExpanded((current) => !current)}
-                            className="absolute top-6 left-1/2 translate-x-3 rounded-md p-1 text-eirdom-niebla-azul transition-colors hover:text-eirdom-natural-linen"
-                            aria-label="Expand sidebar"
-                        >
-                            <ChevronLast size={18} />
                         </button>
                     )}
                 </div>
@@ -223,7 +233,7 @@ export default function Sidebar() {
                                     </p>
 
                                     <p className="truncate text-xs text-eirdom-stone">
-                                        Administrator
+                                        {currentRole}
                                     </p>
                                 </div>
 

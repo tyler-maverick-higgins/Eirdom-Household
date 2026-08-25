@@ -1,4 +1,9 @@
+import hashlib
+import secrets
+from datetime import timedelta
+
 from django.db import models
+from django.utils import timezone
 from django.utils.text import slugify
 
 from config import settings
@@ -78,6 +83,26 @@ class HouseholdInvitation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    token_hash = models.CharField(
+        max_length=64,
+        blank=True,
+    )
+
+    expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    accepted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    last_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
         ACCEPTED = "accepted", "Accepted"
@@ -105,3 +130,30 @@ class HouseholdInvitation(models.Model):
     def __str__(self) -> str:
         role_label = HouseholdMembership.Roles(self.role).label
         return f"{self.email} - {self.household} ({role_label}) - {self.status}"
+
+    def generate_token(self) -> str:
+        token = secrets.token_urlsafe(32)
+
+        self.token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+        self.expires_at = timezone.now() + timedelta(days=7)
+
+        return token
+
+    def token_matches(self, token: str) -> bool:
+        if not self.token_hash:
+            return False
+
+        candidate_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+        return secrets.compare_digest(
+            self.token_hash,
+            candidate_hash,
+        )
+
+    @property
+    def is_expired(self) -> bool:
+        if self.expires_at is None:
+            return True
+
+        return timezone.now() >= self.expires_at

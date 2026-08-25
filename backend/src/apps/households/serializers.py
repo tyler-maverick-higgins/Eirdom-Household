@@ -140,3 +140,12 @@ class HouseholdInvitationSerializer(serializers.ModelSerializer):
         return HouseholdInvitation.objects.create(
             household=household, invited_by=request.user, **validated_data
         )
+
+
+class HouseholdInvitationValidationSerializer(serializers.Serializer):
+    household_name = serializers.CharField(read_only=True)
+    email = serializers.EmailField(read_only=True)
+    role = serializers.CharField(read_only=True)
+    inviter_name = serializers.CharField(read_only=True)
+    expires_at = serializers.DateTimeField(read_only=True)
+    account_exists = serializers.BooleanField(read_only=True)

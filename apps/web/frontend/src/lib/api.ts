@@ -6,4 +6,6 @@ export const api = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+    xsrfCookieName: "csrftoken",
+    xsrfHeaderName: "X-CSRFToken",
 });

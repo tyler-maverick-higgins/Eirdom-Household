@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -440,3 +442,170 @@ def test_nonexistent_household_returns_404(
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert HouseholdInvitation.objects.count() == 0
+
+
+@pytest.mark.django_db
+@patch("apps.households.views.send_household_invitation_task.delay")
+def test_owner_queues_invitation_email_task_after_commit(
+    mock_delay,
+    django_capture_on_commit_callbacks,
+    api_client,
+    household,
+    invitation_url,
+    owner,
+    valid_payload,
+):
+    create_membership(
+        household,
+        owner,
+        HouseholdMembership.Roles.OWNER,
+    )
+    api_client.force_authenticate(user=owner)
+
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        response = api_client.post(
+            invitation_url,
+            valid_payload,
+            format="json",
+        )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert len(callbacks) == 1
+
+    invitation = HouseholdInvitation.objects.get()
+
+    mock_delay.assert_called_once_with(invitation.pk)
+
+
+@pytest.mark.django_db
+@patch("apps.households.views.send_household_invitation_task.delay")
+def test_administrator_queues_invitation_email_task_after_commit(
+    mock_delay,
+    django_capture_on_commit_callbacks,
+    api_client,
+    household,
+    invitation_url,
+    administrator,
+    valid_payload,
+):
+    create_membership(
+        household,
+        administrator,
+        HouseholdMembership.Roles.ADMINISTRATOR,
+    )
+    api_client.force_authenticate(user=administrator)
+
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        response = api_client.post(
+            invitation_url,
+            valid_payload,
+            format="json",
+        )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert len(callbacks) == 1
+
+    invitation = HouseholdInvitation.objects.get()
+
+    mock_delay.assert_called_once_with(invitation.pk)
+
+
+@pytest.mark.django_db
+@patch("apps.households.views.send_household_invitation_task.delay")
+def test_unauthorized_user_does_not_queue_invitation_email_task(
+    mock_delay,
+    django_capture_on_commit_callbacks,
+    api_client,
+    household,
+    invitation_url,
+    member,
+    valid_payload,
+):
+    create_membership(
+        household,
+        member,
+        HouseholdMembership.Roles.MEMBER,
+    )
+    api_client.force_authenticate(user=member)
+
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        response = api_client.post(
+            invitation_url,
+            valid_payload,
+            format="json",
+        )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert HouseholdInvitation.objects.count() == 0
+    assert callbacks == []
+    mock_delay.assert_not_called()
+
+
+@pytest.mark.django_db
+@patch("apps.households.views.send_household_invitation_task.delay")
+def test_invalid_invitation_does_not_queue_email_task(
+    mock_delay,
+    django_capture_on_commit_callbacks,
+    api_client,
+    household,
+    invitation_url,
+    administrator,
+):
+    create_membership(
+        household,
+        administrator,
+        HouseholdMembership.Roles.ADMINISTRATOR,
+    )
+    api_client.force_authenticate(user=administrator)
+
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        response = api_client.post(
+            invitation_url,
+            {
+                "email": "not-an-email",
+                "role": HouseholdMembership.Roles.MEMBER,
+            },
+            format="json",
+        )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert HouseholdInvitation.objects.count() == 0
+    assert callbacks == []
+    mock_delay.assert_not_called()
+
+
+@pytest.mark.django_db
+@patch("apps.households.views.send_household_invitation_task.delay")
+def test_duplicate_pending_invitation_does_not_queue_email_task(
+    mock_delay,
+    django_capture_on_commit_callbacks,
+    api_client,
+    household,
+    invitation_url,
+    administrator,
+    valid_payload,
+):
+    create_membership(
+        household,
+        administrator,
+        HouseholdMembership.Roles.ADMINISTRATOR,
+    )
+    HouseholdInvitation.objects.create(
+        household=household,
+        email="invited@example.com",
+        role=HouseholdMembership.Roles.MEMBER,
+        invited_by=administrator,
+    )
+    api_client.force_authenticate(user=administrator)
+
+    with django_capture_on_commit_callbacks(execute=True) as callbacks:
+        response = api_client.post(
+            invitation_url,
+            valid_payload,
+            format="json",
+        )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert HouseholdInvitation.objects.count() == 1
+    assert callbacks == []
+    mock_delay.assert_not_called()

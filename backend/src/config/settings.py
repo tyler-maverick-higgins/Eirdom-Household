@@ -36,6 +36,22 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
+RESEND_API_KEY = os.environ["RESEND_API_KEY"]
+RESEND_FROM_EMAIL = os.environ["RESEND_FROM_EMAIL"]
+
+STEWARD_FRONTEND_URL = os.getenv(
+    "STEWARD_FRONTEND_URL",
+    "http://localhost:5173",
+)
+
+CELERY_BROKER_URL = os.getenv(
+    "CELERY_RESULT_BACKEND",
+    "redis://redis:6379/1",
+)
+
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMT = 30 * 60
+
 AUTH_USER_MODEL = "accounts.User"
 
 # Application definition
