@@ -30,6 +30,28 @@ ALLOWED_HOSTS = [
     host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if host.strip()
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+RESEND_API_KEY = os.environ["RESEND_API_KEY"]
+RESEND_FROM_EMAIL = os.environ["RESEND_FROM_EMAIL"]
+
+STEWARD_FRONTEND_URL = os.getenv(
+    "STEWARD_FRONTEND_URL",
+    "http://localhost:5173",
+)
+
+CELERY_BROKER_URL = os.getenv(
+    "CELERY_RESULT_BACKEND",
+    "redis://redis:6379/1",
+)
+
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMT = 30 * 60
+
 AUTH_USER_MODEL = "accounts.User"
 
 # Application definition
@@ -37,6 +59,7 @@ AUTH_USER_MODEL = "accounts.User"
 INSTALLED_APPS = [
     "apps.accounts",
     "apps.households",
+    "rest_framework",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

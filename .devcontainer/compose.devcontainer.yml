@@ -1,5 +1,29 @@
 services:
-    backend:
+    workspace:
+        image: mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+        container_name: steward-workspace
+        working_dir: /workspace
+        command: sleep infinity
+        env_file:
+            - ./backend/.env
         volumes:
             - .:/workspace
-        working_dir: /workspace/backend/src
+            - frontend_node_modules:/workspace/apps/web/frontend/node_modules
+        depends_on:
+            backend:
+                condition: service_started
+            frontend:
+                condition: service_started
+            database:
+                condition: service_healthy
+
+    frontend:
+        user: root
+        command: >
+            sh -c "
+                chown -R node:node /workspace/apps/web/frontend/node_modules &&
+                if [ ! -d /workspace/apps/web/frontend/node_modules/vite ]; then
+                    su node -s /bin/sh -c 'cd /workspace/apps/web/frontend && npm ci';
+                fi &&
+                exec su node -s /bin/sh -c 'cd /workspace/apps/web/frontend && npm run dev -- --host 0.0.0.0'
+            "

@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+    /* Primary dark surfaces */
+    --color-eirdom-moscow-midnight: #204652;
+    --color-eirdom-charcoal-deep: #191817;
+
+    /* Cool supporting tones */
+    --color-eirdom-niebla-azul: #b6c3c4;
+
+    /* Warm supporting tones */
+    --color-eirdom-walnut-light: #746052;
+    --color-eirdom-natural-linen: #dfd3c3;
+    --color-eirdom-stone: #c7bdae;
+    --color-eirdom-surface: #f7f4ef;
+
+    /* Semantic tokens */
+    --color-eirdom-muted: var(--color-eirdom-stone);
+    --color-eirdom-border: var(--color-eirdom-niebla-azul);
+
+    /* Accent tones */
+    --color-eirdom-brass: #b59a63;
+    --color-eirdom-brass-light: #cfb77e;
+}
+
+@layer base {
+    html {
+        background-color: var(--color-eirdom-surface);
+    }
+
+    body {
+        min-width: 320px;
+        min-height: 100vh;
+        background-color: var(--color-eirdom-surface);
+        color: var(--color-eirdom-moscow-midnight);
+    }
+
+    button,
+    a,
+    input,
+    select,
+    textarea {
+        font: inherit;
+    }
+
+    button,
+    a {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-eirdom-brass);
+        outline-offset: 2px;
+    }
+}
