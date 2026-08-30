@@ -1,6 +1,5 @@
 import resend
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 
 from apps.households.models import HouseholdInvitation
 
@@ -10,7 +9,7 @@ def send_household_invitation(
     token: str,
 ) -> str:
     if not settings.RESEND_API_KEY:
-        raise ImproperlyConfigured("RESEND_API_KEY is required to send household invitations.")
+        raise RuntimeError("RESEND_API_KEY is required to send household invitations.")
 
     resend.api_key = settings.RESEND_API_KEY
 

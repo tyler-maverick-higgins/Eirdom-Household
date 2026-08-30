@@ -36,7 +36,7 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
-RESEND_API_KEY = os.environ["RESEND_API_KEY"]
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 RESEND_FROM_EMAIL = os.environ["RESEND_FROM_EMAIL"]
 
 STEWARD_FRONTEND_URL = os.getenv(
