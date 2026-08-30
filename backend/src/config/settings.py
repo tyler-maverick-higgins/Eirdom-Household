@@ -37,7 +37,10 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
-RESEND_FROM_EMAIL = os.environ["RESEND_FROM_EMAIL"]
+RESEND_FROM_EMAIL = os.getenv(
+    "RESEND_FROM_EMAIL",
+    "Steward <invitations@eirdom.homes>",
+)
 
 STEWARD_FRONTEND_URL = os.getenv(
     "STEWARD_FRONTEND_URL",
