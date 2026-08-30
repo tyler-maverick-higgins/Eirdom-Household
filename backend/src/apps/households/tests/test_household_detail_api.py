@@ -187,3 +187,39 @@ def test_household_detail_returns_active_members_and_pending_invitations(
 
     assert len(response.data["pending_invitations"]) == 1
     assert response.data["pending_invitations"][0]["email"] == "invited@example.com"
+
+
+@pytest.mark.django_db
+def test_household_detail_includes_email_and_type(
+    api_client,
+    household,
+    user,
+):
+    household.email = "household@example.com"
+    household.household_type = Household.Types.PRIMARY
+    household.save(
+        update_fields=[
+            "email",
+            "household_type",
+            "updated_at",
+        ]
+    )
+
+    HouseholdMembership.objects.create(
+        household=household,
+        user=user,
+        role=HouseholdMembership.Roles.OWNER,
+    )
+
+    api_client.force_authenticate(user=user)
+
+    response = api_client.get(
+        reverse(
+            "households:household-detail",
+            kwargs={"pk": household.pk},
+        )
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["email"] == "household@example.com"
+    assert response.data["household_type"] == Household.Types.PRIMARY

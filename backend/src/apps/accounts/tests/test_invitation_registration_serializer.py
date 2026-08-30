@@ -74,6 +74,43 @@ def valid_payload(invitation_token):
 
 
 @pytest.mark.django_db
+def test_registration_serializer_exposes_only_expected_fields():
+    serializer = cast(
+        InvitationRegistrationSerializer,
+        InvitationRegistrationSerializer(),
+    )
+
+    assert set(serializer.fields) == {
+        "token",
+        "username",
+        "first_name",
+        "last_name",
+        "password",
+    }
+
+
+@pytest.mark.django_db
+def test_registration_serializer_does_not_expose_privileged_user_fields():
+    serializer = cast(
+        InvitationRegistrationSerializer,
+        InvitationRegistrationSerializer(),
+    )
+
+    prohibited_fields = {
+        "email",
+        "is_active",
+        "is_staff",
+        "is_superuser",
+        "groups",
+        "user_permissions",
+        "last_login",
+        "date_joined",
+    }
+
+    assert prohibited_fields.isdisjoint(serializer.fields.keys())
+
+
+@pytest.mark.django_db
 def test_valid_invitation_registration_creates_user(
     invitation,
     valid_payload,
@@ -91,6 +128,41 @@ def test_valid_invitation_registration_creates_user(
     assert user.first_name == "New"
     assert user.last_name == "User"
     assert user.check_password("VeryStrongPassword123!")
+
+
+@pytest.mark.django_db
+def test_registration_creates_normal_steward_account(
+    valid_payload,
+):
+    serializer = InvitationRegistrationSerializer(
+        data=valid_payload,
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+    user = cast(User, serializer.save())
+
+    assert user.is_active is True
+    assert user.is_staff is False
+    assert user.is_superuser is False
+
+
+@pytest.mark.django_db
+def test_registration_password_is_hashed(
+    valid_payload,
+):
+    raw_password = valid_payload["password"]
+
+    serializer = InvitationRegistrationSerializer(
+        data=valid_payload,
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+    user = cast(User, serializer.save())
+
+    assert user.password != raw_password
+    assert user.check_password(raw_password) is True
 
 
 @pytest.mark.django_db
@@ -113,6 +185,139 @@ def test_registration_email_comes_from_invitation(
 
     assert user.email == invitation.email
     assert user.email != "attacker@example.com"
+
+
+@pytest.mark.django_db
+def test_registration_cannot_set_staff_flag(
+    valid_payload,
+):
+    payload = {
+        **valid_payload,
+        "is_staff": True,
+    }
+
+    serializer = InvitationRegistrationSerializer(
+        data=payload,
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+    user = cast(User, serializer.save())
+
+    assert user.is_staff is False
+    assert user.is_superuser is False
+
+
+@pytest.mark.django_db
+def test_registration_cannot_set_superuser_flag(
+    valid_payload,
+):
+    payload = {
+        **valid_payload,
+        "is_superuser": True,
+    }
+
+    serializer = InvitationRegistrationSerializer(
+        data=payload,
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+    user = cast(User, serializer.save())
+
+    assert user.is_staff is False
+    assert user.is_superuser is False
+
+
+@pytest.mark.django_db
+def test_registration_cannot_override_active_flag(
+    valid_payload,
+):
+    payload = {
+        **valid_payload,
+        "is_active": False,
+    }
+
+    serializer = InvitationRegistrationSerializer(
+        data=payload,
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+    user = cast(User, serializer.save())
+
+    assert user.is_active is True
+
+
+@pytest.mark.django_db
+def test_registration_cannot_assign_groups(
+    valid_payload,
+):
+    payload = {
+        **valid_payload,
+        "groups": [1, 2, 3],
+    }
+
+    serializer = InvitationRegistrationSerializer(
+        data=payload,
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+    user = cast(User, serializer.save())
+
+    assert user.groups.count() == 0
+
+
+@pytest.mark.django_db
+def test_registration_cannot_assign_user_permissions(
+    valid_payload,
+):
+    payload = {
+        **valid_payload,
+        "user_permissions": [1, 2, 3],
+    }
+
+    serializer = InvitationRegistrationSerializer(
+        data=payload,
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+    user = cast(User, serializer.save())
+
+    assert user.user_permissions.count() == 0
+
+
+@pytest.mark.django_db
+def test_registration_cannot_override_multiple_system_fields(
+    invitation,
+    valid_payload,
+):
+    payload = {
+        **valid_payload,
+        "email": "attacker@example.com",
+        "is_active": False,
+        "is_staff": True,
+        "is_superuser": True,
+        "groups": [1],
+        "user_permissions": [1],
+    }
+
+    serializer = InvitationRegistrationSerializer(
+        data=payload,
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+    user = cast(User, serializer.save())
+
+    assert user.email == invitation.email
+    assert user.is_active is True
+    assert user.is_staff is False
+    assert user.is_superuser is False
+    assert user.groups.count() == 0
+    assert user.user_permissions.count() == 0
 
 
 @pytest.mark.django_db
@@ -164,6 +369,34 @@ def test_username_is_required(
 
     assert serializer.is_valid() is False
     assert "username" in serializer.errors
+
+
+@pytest.mark.django_db
+def test_password_is_required(
+    valid_payload,
+):
+    payload = {key: value for key, value in valid_payload.items() if key != "password"}
+
+    serializer = InvitationRegistrationSerializer(
+        data=payload,
+    )
+
+    assert serializer.is_valid() is False
+    assert "password" in serializer.errors
+
+
+@pytest.mark.django_db
+def test_token_is_required(
+    valid_payload,
+):
+    payload = {key: value for key, value in valid_payload.items() if key != "token"}
+
+    serializer = InvitationRegistrationSerializer(
+        data=payload,
+    )
+
+    assert serializer.is_valid() is False
+    assert "token" in serializer.errors
 
 
 @pytest.mark.django_db
@@ -263,6 +496,7 @@ def test_expired_invitation_is_rejected(
     valid_payload,
 ):
     invitation.expires_at = timezone.now() - timedelta(minutes=1)
+
     invitation.save(
         update_fields=[
             "expires_at",
@@ -293,6 +527,7 @@ def test_non_pending_invitation_is_rejected(
     invitation_status,
 ):
     invitation.status = invitation_status
+
     invitation.save(
         update_fields=[
             "status",
@@ -345,3 +580,61 @@ def test_names_are_trimmed(
 
     assert user.first_name == "New"
     assert user.last_name == "User"
+
+
+@pytest.mark.django_db
+def test_failed_registration_does_not_create_user(
+    valid_payload,
+):
+    payload = {
+        **valid_payload,
+        "token": "invalid-token",
+    }
+
+    user_count_before = User.objects.count()
+
+    serializer = InvitationRegistrationSerializer(
+        data=payload,
+    )
+
+    assert serializer.is_valid() is False
+    assert User.objects.count() == user_count_before
+
+
+@pytest.mark.django_db
+def test_weak_password_failure_does_not_create_user(
+    valid_payload,
+):
+    payload = {
+        **valid_payload,
+        "password": "password",
+    }
+
+    user_count_before = User.objects.count()
+
+    serializer = InvitationRegistrationSerializer(
+        data=payload,
+    )
+
+    assert serializer.is_valid() is False
+    assert User.objects.count() == user_count_before
+
+
+@pytest.mark.django_db
+def test_duplicate_username_failure_does_not_create_user(
+    valid_payload,
+):
+    User.objects.create_user(
+        username="new-user",
+        email="other@example.com",
+        password="test-password-123",
+    )
+
+    user_count_before = User.objects.count()
+
+    serializer = InvitationRegistrationSerializer(
+        data=valid_payload,
+    )
+
+    assert serializer.is_valid() is False
+    assert User.objects.count() == user_count_before

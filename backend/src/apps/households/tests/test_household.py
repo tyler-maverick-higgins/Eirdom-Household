@@ -107,3 +107,66 @@ def test_household_field_lengths_match_domain_design() -> None:
 
     assert name_field.max_length == 255
     assert slug_field.max_length == 150
+
+
+@pytest.mark.django_db
+def test_household_defaults_to_primary_type():
+    household = Household.objects.create(
+        name="Higgins Household",
+    )
+
+    assert household.household_type == Household.Types.PRIMARY
+
+
+@pytest.mark.django_db
+def test_household_email_is_optional():
+    household = Household.objects.create(
+        name="Higgins Household",
+    )
+
+    assert household.email == ""
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("household_type", "label"),
+    [
+        (
+            Household.Types.PRIMARY,
+            "Primary Household",
+        ),
+        (
+            Household.Types.VACATION,
+            "Vacation Home",
+        ),
+        (
+            Household.Types.RENTAL,
+            "Rental Property",
+        ),
+        (
+            Household.Types.OTHER,
+            "Other",
+        ),
+    ],
+)
+def test_household_type_choices(
+    household_type,
+    label,
+):
+    household = Household.objects.create(
+        name=f"{label} Test",
+        household_type=household_type,
+    )
+
+    assert household.household_type == household_type
+    assert dict(Household.Types.choices)[household_type] == label
+
+
+@pytest.mark.django_db
+def test_household_can_store_email():
+    household = Household.objects.create(
+        name="Higgins Household",
+        email="household@example.com",
+    )
+
+    assert household.email == "household@example.com"

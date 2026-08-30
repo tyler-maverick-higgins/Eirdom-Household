@@ -140,3 +140,93 @@ def test_csrf_endpoint_returns_token(api_client):
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["csrfToken"]
+
+
+@pytest.mark.django_db
+def test_staff_user_cannot_login_to_steward(
+    api_client,
+):
+    user = User.objects.create_user(
+        username="staff",
+        password="test-password-123",
+        is_staff=True,
+    )
+
+    response = api_client.post(
+        "/api/auth/login/",
+        {
+            "username": user.username,
+            "password": "test-password-123",
+        },
+        format="json",
+    )
+
+    assert response.status_code == (status.HTTP_403_FORBIDDEN)
+
+    assert response.data == {"detail": "This account cannot sign in to Steward."}
+
+
+@pytest.mark.django_db
+def test_superuser_cannot_login_to_steward(
+    api_client,
+):
+    user = User.objects.create_superuser(
+        username="system-admin",
+        email="admin@example.com",
+        password="test-password-123",
+    )
+
+    response = api_client.post(
+        "/api/auth/login/",
+        {
+            "username": user.username,
+            "password": "test-password-123",
+        },
+        format="json",
+    )
+
+    assert response.status_code == (status.HTTP_403_FORBIDDEN)
+
+    assert response.data == {"detail": "This account cannot sign in to Steward."}
+
+
+@pytest.mark.django_db
+def test_staff_user_cannot_access_current_user_endpoint(
+    api_client,
+):
+    user = User.objects.create_user(
+        username="staff",
+        password="test-password-123",
+        is_staff=True,
+    )
+
+    api_client.force_authenticate(
+        user=user,
+    )
+
+    response = api_client.get(
+        "/api/auth/me/",
+    )
+
+    assert response.status_code == (status.HTTP_403_FORBIDDEN)
+
+
+@pytest.mark.django_db
+def test_superuser_cannot_access_current_user_endpoint(
+    api_client,
+):
+    user = User.objects.create_superuser(
+        username="system-admin",
+        email="admin@example.com",
+        password="test-password-123",
+    )
+
+    api_client.force_authenticate(
+        user=user,
+    )
+
+    response = api_client.get(
+        "/api/auth/me/",
+    )
+
+    assert response.status_code == (status.HTTP_403_FORBIDDEN)

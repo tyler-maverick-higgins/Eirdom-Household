@@ -37,7 +37,13 @@ def household_list_url():
     return reverse("households:household-list")
 
 
-def create_membership(household, user, role, *, is_active=True):
+def create_membership(
+    household,
+    user,
+    role,
+    *,
+    is_active=True,
+):
     return HouseholdMembership.objects.create(
         household=household,
         user=user,
@@ -51,9 +57,11 @@ def test_unauthenticated_user_cannot_list_households(
     api_client,
     household_list_url,
 ):
-    response = api_client.get(household_list_url)
+    response = api_client.get(
+        household_list_url,
+    )
 
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == (status.HTTP_403_FORBIDDEN)
 
 
 @pytest.mark.django_db
@@ -62,11 +70,15 @@ def test_authenticated_user_with_no_memberships_gets_empty_list(
     user,
     household_list_url,
 ):
-    api_client.force_authenticate(user=user)
+    api_client.force_authenticate(
+        user=user,
+    )
 
-    response = api_client.get(household_list_url)
+    response = api_client.get(
+        household_list_url,
+    )
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == (status.HTTP_200_OK)
     assert response.data == []
 
 
@@ -76,9 +88,17 @@ def test_user_only_sees_households_with_active_membership(
     user,
     household_list_url,
 ):
-    active_household = Household.objects.create(name="Eirdom Household")
-    inactive_household = Household.objects.create(name="Old Household")
-    unrelated_household = Household.objects.create(name="Other Household")
+    active_household = Household.objects.create(
+        name="Eirdom Household",
+    )
+
+    inactive_household = Household.objects.create(
+        name="Old Household",
+    )
+
+    unrelated_household = Household.objects.create(
+        name="Other Household",
+    )
 
     create_membership(
         active_household,
@@ -86,6 +106,7 @@ def test_user_only_sees_households_with_active_membership(
         HouseholdMembership.Roles.MEMBER,
         is_active=True,
     )
+
     create_membership(
         inactive_household,
         user,
@@ -93,17 +114,21 @@ def test_user_only_sees_households_with_active_membership(
         is_active=False,
     )
 
-    api_client.force_authenticate(user=user)
+    api_client.force_authenticate(
+        user=user,
+    )
 
-    response = api_client.get(household_list_url)
+    response = api_client.get(
+        household_list_url,
+    )
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == (status.HTTP_200_OK)
 
     returned_ids = {item["id"] for item in response.data}
 
-    assert active_household.id in returned_ids
-    assert inactive_household.id not in returned_ids
-    assert unrelated_household.id not in returned_ids
+    assert active_household.pk in returned_ids
+    assert inactive_household.pk not in returned_ids
+    assert unrelated_household.pk not in returned_ids
 
 
 @pytest.mark.django_db
@@ -112,32 +137,42 @@ def test_user_can_see_multiple_active_households(
     user,
     household_list_url,
 ):
-    first_household = Household.objects.create(name="Eirdom Household")
-    second_household = Household.objects.create(name="Cabin Household")
+    first_household = Household.objects.create(
+        name="Eirdom Household",
+    )
+
+    second_household = Household.objects.create(
+        name="Cabin Household",
+    )
 
     create_membership(
         first_household,
         user,
         HouseholdMembership.Roles.OWNER,
     )
+
     create_membership(
         second_household,
         user,
         HouseholdMembership.Roles.MEMBER,
     )
 
-    api_client.force_authenticate(user=user)
+    api_client.force_authenticate(
+        user=user,
+    )
 
-    response = api_client.get(household_list_url)
+    response = api_client.get(
+        household_list_url,
+    )
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == (status.HTTP_200_OK)
     assert len(response.data) == 2
 
     returned_ids = {item["id"] for item in response.data}
 
     assert returned_ids == {
-        first_household.id,
-        second_household.id,
+        first_household.pk,
+        second_household.pk,
     }
 
 
@@ -147,7 +182,9 @@ def test_household_list_does_not_duplicate_households(
     user,
     household_list_url,
 ):
-    household = Household.objects.create(name="Eirdom Household")
+    household = Household.objects.create(
+        name="Eirdom Household",
+    )
 
     create_membership(
         household,
@@ -155,13 +192,17 @@ def test_household_list_does_not_duplicate_households(
         HouseholdMembership.Roles.ADMINISTRATOR,
     )
 
-    api_client.force_authenticate(user=user)
+    api_client.force_authenticate(
+        user=user,
+    )
 
-    response = api_client.get(household_list_url)
+    response = api_client.get(
+        household_list_url,
+    )
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == (status.HTTP_200_OK)
     assert len(response.data) == 1
-    assert response.data[0]["id"] == household.id
+    assert response.data[0]["id"] == household.pk
 
 
 @pytest.mark.django_db
@@ -170,7 +211,9 @@ def test_household_list_returns_expected_fields(
     user,
     household_list_url,
 ):
-    household = Household.objects.create(name="Eirdom Household")
+    household = Household.objects.create(
+        name="Eirdom Household",
+    )
 
     create_membership(
         household,
@@ -178,16 +221,20 @@ def test_household_list_returns_expected_fields(
         HouseholdMembership.Roles.OWNER,
     )
 
-    api_client.force_authenticate(user=user)
+    api_client.force_authenticate(
+        user=user,
+    )
 
-    response = api_client.get(household_list_url)
+    response = api_client.get(
+        household_list_url,
+    )
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == (status.HTTP_200_OK)
     assert len(response.data) == 1
 
     household_data = response.data[0]
 
-    assert household_data["id"] == household.id
+    assert household_data["id"] == household.pk
     assert household_data["name"] == "Eirdom Household"
     assert "created_at" in household_data
     assert "updated_at" in household_data
@@ -200,7 +247,9 @@ def test_other_users_memberships_do_not_expose_household(
     other_user,
     household_list_url,
 ):
-    household = Household.objects.create(name="Irina Household")
+    household = Household.objects.create(
+        name="Irina Household",
+    )
 
     create_membership(
         household,
@@ -208,9 +257,88 @@ def test_other_users_memberships_do_not_expose_household(
         HouseholdMembership.Roles.OWNER,
     )
 
-    api_client.force_authenticate(user=user)
+    api_client.force_authenticate(
+        user=user,
+    )
 
-    response = api_client.get(household_list_url)
+    response = api_client.get(
+        household_list_url,
+    )
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == (status.HTTP_200_OK)
     assert response.data == []
+
+
+@pytest.mark.django_db
+def test_household_list_includes_email_and_type(
+    api_client,
+    user,
+    household_list_url,
+):
+    household = Household.objects.create(
+        name="Vacation Home",
+        email="household@example.com",
+        household_type=Household.Types.VACATION,
+    )
+
+    HouseholdMembership.objects.create(
+        household=household,
+        user=user,
+        role=HouseholdMembership.Roles.OWNER,
+    )
+
+    api_client.force_authenticate(
+        user=user,
+    )
+
+    response = api_client.get(
+        household_list_url,
+    )
+
+    assert response.status_code == (status.HTTP_200_OK)
+    assert response.data[0]["email"] == "household@example.com"
+    assert response.data[0]["household_type"] == Household.Types.VACATION
+
+
+@pytest.mark.django_db
+def test_staff_user_cannot_access_household_api(
+    api_client,
+    household_list_url,
+):
+    user = User.objects.create_user(
+        username="staff",
+        password="test-password-123",
+        is_staff=True,
+    )
+
+    api_client.force_authenticate(
+        user=user,
+    )
+
+    response = api_client.get(
+        household_list_url,
+    )
+
+    assert response.status_code == (status.HTTP_403_FORBIDDEN)
+
+
+@pytest.mark.django_db
+def test_superuser_cannot_access_household_api(
+    api_client,
+    household_list_url,
+):
+    user = User.objects.create_superuser(
+        username="system-admin",
+        email="admin@example.com",
+        password="test-password-123",
+    )
+
+    api_client.force_authenticate(
+        user=user,
+    )
+
+    response = api_client.get(
+        household_list_url,
+    )
+
+    assert response.status_code == (status.HTTP_403_FORBIDDEN)

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import {
     getCurrentUser,
@@ -13,11 +13,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const refreshUser = useCallback(async () => {
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+    }, []);
+
     useEffect(() => {
         const loadCurrentUser = async () => {
             try {
-                const currentUser = await getCurrentUser();
-                setUser(currentUser);
+                await refreshUser();
             } catch {
                 setUser(null);
             } finally {
@@ -26,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         void loadCurrentUser();
-    }, []);
+    }, [refreshUser]);
 
     const login = async (input: LoginInput) => {
         const authenticatedUser = await loginRequest(input);
@@ -45,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 loading,
                 login,
                 logout,
+                refreshUser,
             }}
         >
             {children}

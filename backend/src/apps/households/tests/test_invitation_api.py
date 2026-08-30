@@ -119,7 +119,9 @@ def test_outsider_cannot_create_invitation(
     response = api_client.post(invitation_url, valid_payload, format="json")
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert response.data["detail"] == ("You are not an active member of this household.")
+    assert response.data["detail"] == (
+        "Only household owners and administrators may manage invitations."
+    )
     assert HouseholdInvitation.objects.count() == 0
 
 
@@ -142,7 +144,7 @@ def test_member_cannot_create_invitation(
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.data["detail"] == (
-        "Only household owners and administrators may send invitations."
+        "Only household owners and administrators may manage invitations."
     )
     assert HouseholdInvitation.objects.count() == 0
 
@@ -166,7 +168,7 @@ def test_guest_cannot_create_invitation(
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.data["detail"] == (
-        "Only household owners and administrators may send invitations."
+        "Only household owners and administrators may manage invitations."
     )
     assert HouseholdInvitation.objects.count() == 0
 
@@ -202,7 +204,9 @@ def test_inactive_privileged_member_cannot_create_invitation(
     response = api_client.post(invitation_url, valid_payload, format="json")
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
-    assert response.data["detail"] == ("You are not an active member of this household.")
+    assert response.data["detail"] == (
+        "Only household owners and administrators may manage invitations."
+    )
     assert HouseholdInvitation.objects.count() == 0
 
 
@@ -609,3 +613,68 @@ def test_duplicate_pending_invitation_does_not_queue_email_task(
     assert HouseholdInvitation.objects.count() == 1
     assert callbacks == []
     mock_delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_administrator_cannot_invite_administrator(
+    api_client,
+    household,
+    invitation_url,
+    administrator,
+):
+    create_membership(
+        household,
+        administrator,
+        HouseholdMembership.Roles.ADMINISTRATOR,
+    )
+
+    api_client.force_authenticate(
+        user=administrator,
+    )
+
+    response = api_client.post(
+        invitation_url,
+        {
+            "email": "new-admin@example.com",
+            "role": HouseholdMembership.Roles.ADMINISTRATOR,
+        },
+        format="json",
+    )
+
+    assert response.status_code == (status.HTTP_403_FORBIDDEN)
+
+    assert HouseholdInvitation.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_owner_can_invite_administrator(
+    api_client,
+    household,
+    invitation_url,
+    owner,
+):
+    create_membership(
+        household,
+        owner,
+        HouseholdMembership.Roles.OWNER,
+    )
+
+    api_client.force_authenticate(
+        user=owner,
+    )
+
+    response = api_client.post(
+        invitation_url,
+        {
+            "email": "new-admin@example.com",
+            "role": HouseholdMembership.Roles.ADMINISTRATOR,
+        },
+        format="json",
+    )
+
+    assert response.status_code == (status.HTTP_201_CREATED)
+
+    invitation = HouseholdInvitation.objects.get()
+
+    assert invitation.invited_by == owner
+    assert invitation.role == (HouseholdMembership.Roles.ADMINISTRATOR)

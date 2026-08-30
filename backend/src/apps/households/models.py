@@ -10,8 +10,24 @@ from config import settings
 
 
 class Household(models.Model):
+    class Types(models.TextChoices):
+        PRIMARY = "primary", "Primary Household"
+        VACATION = "vacation", "Vacation Home"
+        RENTAL = "rental", "Rental Property"
+        OTHER = "other", "Other"
+
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, max_length=150, blank=True)
+
+    email = models.EmailField(
+        blank=True,
+    )
+
+    household_type = models.CharField(
+        max_length=20,
+        choices=Types.choices,
+        default=Types.PRIMARY,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

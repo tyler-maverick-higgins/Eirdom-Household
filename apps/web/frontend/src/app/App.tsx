@@ -7,6 +7,7 @@ import {
     FinancesPage,
     HouseholdPage,
     InventoryPage,
+    InvitationAcceptPage,
     LoginPage,
     MaintenancePage,
     MealsPage,
@@ -39,6 +40,10 @@ export default function App() {
     return (
         <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route
+                path="/invitations/accept/:token"
+                element={<InvitationAcceptPage />}
+            />
 
             <Route element={<ProtectedRoute />}>
                 <Route path="/*" element={<ProtectedLayout />} />

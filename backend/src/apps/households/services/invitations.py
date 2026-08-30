@@ -10,7 +10,7 @@ def send_household_invitation(
     token: str,
 ) -> str:
     if not settings.RESEND_API_KEY:
-        raise ImproperlyConfigured("RESEND_API_KEY is required ti send household invitations.")
+        raise ImproperlyConfigured("RESEND_API_KEY is required to send household invitations.")
 
     resend.api_key = settings.RESEND_API_KEY
 
